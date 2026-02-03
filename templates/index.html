@@ -290,8 +290,8 @@
         .line-text {
             position: absolute;
             top: -20px;
-            left: 50%;
-            transform: translateX(-50%);
+            left: 24px;
+            transform: translateX(0);
             font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
             font-size: 12px;
             font-weight: 600;
@@ -397,12 +397,15 @@
         });
 
         // --- FLUID LAG ANIMATION LOGIC ---
-        let mouseX = window.innerWidth / 2;
-        let mouseY = window.innerHeight / 2;
-        let line1X = window.innerWidth / 2;
-        let line1Y = window.innerHeight / 2;
-        let line2X = window.innerWidth / 2;
-        let line2Y = window.innerHeight / 2;
+        const startX = 120;
+        const startY = 30;
+
+        let mouseX = startX;
+        let mouseY = startY;
+        let line1X = startX;
+        let line1Y = startY;
+        let line2X = startX;
+        let line2Y = startY;
 
         const lineOneEl = document.getElementById('line-one');
         const lineTwoEl = document.getElementById('line-two');
@@ -411,6 +414,13 @@
             mouseX = e.clientX;
             mouseY = e.clientY;
         });
+
+        document.addEventListener('touchmove', (e) => {
+            const touch = e.touches && e.touches[0];
+            if (!touch) return;
+            mouseX = touch.clientX;
+            mouseY = touch.clientY;
+        }, { passive: true });
 
         function animate() {
             line1X += (mouseX - line1X) * 0.05;

@@ -1,6 +1,6 @@
 import os
 
-from flask import Flask, render_template
+from flask import Flask, render_template, send_from_directory
 
 app = Flask(__name__)
 
@@ -13,6 +13,15 @@ def home():
     You can pass dynamic data here later (e.g., fetching real stats).
     """
     return render_template('index.html')
+
+# --- SEO: sitemap + robots ---
+@app.route('/sitemap.xml')
+def sitemap():
+    return send_from_directory('templates', 'sitemap.xml', mimetype='application/xml')
+
+@app.route('/robots.txt')
+def robots():
+    return send_from_directory('templates', 'robots.txt', mimetype='text/plain')
 
 # FUTURE EXPANSION EXAMPLE:
 # @app.route('/projects')
