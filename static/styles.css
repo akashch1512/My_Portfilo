@@ -8,6 +8,22 @@
     --line: rgba(20, 20, 20, 0.7);
     --shadow: rgba(20, 20, 20, 0.16);
     --coffee: #ffdd00;
+    --font-primary: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --fw-light: 300;
+    --fw-regular: 400;
+    --fw-medium: 500;
+    --fw-semibold: 600;
+    --fw-bold: 700;
+    --fs-hero: clamp(2.4rem, 5vw, 3.6rem);
+    --fs-h2: clamp(1.7rem, 3vw, 2.2rem);
+    --fs-h3: 1.1rem;
+    --fs-base: 1rem;
+    --fs-sm: 0.875rem;
+    --fs-xs: 0.75rem;
+    --fs-xxs: 0.7rem;
+    --lh-tight: 1.1;
+    --lh-base: 1.7;
+    --lh-relaxed: 1.8;
 }
 
 *,
@@ -25,7 +41,10 @@ body {
 }
 
 body {
-    font-family: "Manrope", system-ui, -apple-system, sans-serif;
+    font-family: var(--font-primary);
+    font-weight: var(--fw-regular);
+    font-size: var(--fs-base);
+    line-height: var(--lh-base);
     color: var(--text);
     background: radial-gradient(1200px 600px at 10% 10%, #ffffff 0%, var(--bg) 45%, #ece5d8 100%);
     overflow: hidden;
@@ -67,7 +86,7 @@ a:focus-visible {
 .loader-text {
     color: #fefefe;
     font-size: 1.7rem;
-    font-weight: 700;
+    font-weight: var(--fw-bold);
     letter-spacing: 4px;
     text-transform: uppercase;
     opacity: 0;
@@ -117,8 +136,9 @@ header {
 }
 
 .logo {
-    font-weight: 700;
-    font-size: 18px;
+    font-weight: var(--fw-semibold);
+    font-size: 1.125rem;
+    font-weight: 400;
     letter-spacing: 1px;
     text-transform: uppercase;
     color: var(--text);
@@ -128,14 +148,14 @@ header {
 nav {
     display: flex;
     gap: 32px;
-    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-family: var(--font-primary);
 }
 
 nav a {
     text-decoration: none;
     color: var(--text);
-    font-size: 11px;
-    font-weight: 600;
+    font-size: var(--fs-xxs);
+    font-weight: var(--fw-medium);
     text-transform: uppercase;
     letter-spacing: 1.2px;
     position: relative;
@@ -175,19 +195,20 @@ nav a:focus-visible::after {
 
 .content h1 {
     margin: 0 0 14px 0;
-    font-size: clamp(2.4rem, 5vw, 3.6rem);
-    font-weight: 700;
+    font-size: var(--fs-hero);
+    font-weight: var(--fw-bold);
     letter-spacing: -0.5px;
     color: var(--text);
-    line-height: 1.05;
+    line-height: var(--lh-tight);
 }
 
 .content p {
     margin: 0 0 32px 0;
-    font-size: 1rem;
+    font-size: var(--fs-base);
     color: var(--muted);
+    font-weight: var(--fw-regular);
     letter-spacing: 0.4px;
-    line-height: 1.7;
+    line-height: var(--lh-base);
     max-width: 600px;
 }
 
@@ -224,8 +245,8 @@ nav a:focus-visible::after {
 .btn {
     text-decoration: none;
     padding: 13px 24px;
-    font-size: 12px;
-    font-weight: 700;
+    font-size: var(--fs-xs);
+    font-weight: var(--fw-semibold);
     text-transform: uppercase;
     letter-spacing: 1px;
     transition: transform 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease, color 0.3s ease;
@@ -255,8 +276,8 @@ nav a:focus-visible::after {
     background-color: var(--coffee);
     color: #000000;
     border: 1px solid var(--coffee);
-    font-family: "JetBrains Mono", ui-monospace, monospace;
-    font-weight: 700;
+    font-family: var(--font-primary);
+    font-weight: var(--fw-semibold);
 }
 
 .coffee-btn:hover,
@@ -300,9 +321,9 @@ nav a:focus-visible::after {
     top: -25px;
     left: 50%;
     transform: translateX(-50%);
-    font-family: "JetBrains Mono", ui-monospace, monospace;
-    font-size: 12px;
-    font-weight: 600;
+    font-family: var(--font-primary);
+    font-size: var(--fs-xs);
+    font-weight: var(--fw-medium);
     color: var(--text);
     letter-spacing: 0.4px;
     text-transform: uppercase;
@@ -321,15 +342,15 @@ nav a:focus-visible::after {
     bottom: 40px;
     z-index: 150;
     padding: 0; 
-    font-size: 11px;
-    font-weight: 600;
+    font-size: var(--fs-xxs);
+    font-weight: var(--fw-medium);
     letter-spacing: 1.2px;
     text-transform: uppercase;
     background: transparent;
     color: var(--text);
     border: none;
     cursor: pointer;
-    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-family: var(--font-primary);
     opacity: 0;
     animation: revealContent 0.8s ease forwards;
     animation-delay: 2.3s;
@@ -390,9 +411,9 @@ nav a:focus-visible::after {
 }
 
 .modal-header {
-    font-family: "JetBrains Mono", monospace;
-    font-size: 12px;
-    font-weight: 700;
+    font-family: var(--font-primary);
+    font-size: var(--fs-xs);
+    font-weight: var(--fw-medium);
     color: var(--muted);
     letter-spacing: 2px;
     margin-bottom: 40px;
@@ -410,9 +431,9 @@ nav a:focus-visible::after {
 }
 
 .nav-link {
-    font-family: "JetBrains Mono", monospace;
+    font-family: var(--font-primary);
     text-decoration: none;
-    font-size: 14px;
+    font-size: var(--fs-sm);
     color: var(--muted);
     text-transform: uppercase;
     letter-spacing: 1px;
@@ -420,6 +441,7 @@ nav a:focus-visible::after {
     position: relative;
     padding-left: 0;
     transition: all 0.3s ease;
+    font-weight: var(--fw-medium);
     display: block;
     cursor: pointer;
 }
@@ -427,7 +449,7 @@ nav a:focus-visible::after {
 .nav-link:hover, .nav-link.active {
     color: var(--accent);
     padding-left: 10px;
-    font-weight: 700;
+    font-weight: var(--fw-semibold);
 }
 
 .nav-link.active::before {
@@ -446,9 +468,9 @@ nav a:focus-visible::after {
     background: transparent;
     border: none;
     padding: 6px;
-    font-family: "JetBrains Mono", monospace;
+    font-family: var(--font-primary);
     font-size: 24px;
-    font-weight: 600;
+    font-weight: var(--fw-semibold);
     line-height: 1;
     color: var(--text);
     cursor: pointer;
@@ -474,33 +496,35 @@ nav a:focus-visible::after {
 }
 
 .policy-group h2 {
-    font-size: 2.2rem;
+    font-size: var(--fs-h2);
     margin-bottom: 10px;
     color: var(--text);
-    font-weight: 700;
+    font-weight: var(--fw-semibold);
 }
 
 .last-updated {
     display: block;
-    font-family: "JetBrains Mono", monospace;
-    font-size: 11px;
+    font-family: var(--font-primary);
+    font-size: var(--fs-xxs);
     color: var(--muted);
+    font-weight: var(--fw-light);
     margin-bottom: 30px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
 
 .text-block h3 {
-    font-size: 1.1rem;
+    font-size: var(--fs-h3);
     margin: 30px 0 12px;
     color: var(--text);
-    font-weight: 700;
+    font-weight: var(--fw-semibold);
 }
 
 .text-block p, .text-block li {
-    font-size: 0.95rem;
-    line-height: 1.8;
+    font-size: var(--fs-base);
+    line-height: var(--lh-relaxed);
     color: var(--muted);
+    font-weight: var(--fw-regular);
     margin-bottom: 16px;
 }
 
@@ -523,8 +547,9 @@ nav a:focus-visible::after {
 }
 
 .contact-details li {
-    font-size: 0.95rem;
+    font-size: var(--fs-base);
     color: var(--muted);
+    font-weight: var(--fw-regular);
     margin-bottom: 8px;
 }
 
@@ -647,11 +672,11 @@ nav a:focus-visible::after {
     }
     
     .nav-link {
-        font-size: 11px;
+        font-size: var(--fs-xxs);
     }
     
     .policy-group h2 {
-        font-size: 1.8rem;
+        font-size: clamp(1.5rem, 4.2vw, 1.8rem);
     }
 
     .close-btn {

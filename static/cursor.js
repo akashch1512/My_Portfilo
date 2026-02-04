@@ -47,7 +47,7 @@ animate();
 const LEGAL_CONTENT = [
     {
         id: "terms",
-        title: "Terms",
+        title: "Terms & Conditions",
         updated: "February 04, 2026",
         content: `
             <h3>1. Introduction & Acceptance</h3>
