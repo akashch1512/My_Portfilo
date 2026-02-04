@@ -20,7 +20,11 @@
     </div>
 
     <header>
-        <div class="logo">Akash Chaudhari</div>
+        <div class="logo-group">
+            <div class="logo">Akash Chaudhari</div>
+            <div class="logo-email">contact@akashchaudhari.in</div>
+        </div>
+        
         <nav>
             <a href="https://github.com/akashch1512?tab=repositories" target="_blank"
                 rel="noopener noreferrer">Projects</a>
@@ -74,11 +78,50 @@
                 </svg>
             </a>
         </div>
+        <div class="scroll-hint" aria-hidden="true">
+            <div class="scroll-icon"></div>
+        </div>
     </div>
 
-    <button id="terms-trigger" class="floating-policy-btn" aria-label="Open terms and privacy policy">
-        Terms & Privacy
-    </button>
+    <footer class="site-footer" role="contentinfo">
+        <div class="footer-inner">
+            <div class="footer-brand">
+                <div class="footer-title">Akash Chaudhari</div>
+                <div class="footer-subtitle">contact@akashchaudhari.in</div>
+            </div>
+
+            <div class="footer-links">
+                <!-- <a href="https://github.com/akashch1512?tab=repositories" target="_blank"
+                    rel="noopener noreferrer" class="footer-link">Projects</a>
+                <a href="https://linkedin.com/in/akash-ch" target="_blank" rel="noopener noreferrer"
+                    class="footer-link">Resume</a>
+                <a href="mailto:contact@akashchaudhari.in" class="footer-link">Email</a> -->
+                <button id="terms-trigger" class="footer-link footer-button" type="button"
+                    aria-label="Open terms and privacy policy">
+                    Terms & Privacy
+                </button>
+            </div>
+
+            <div class="notify">
+                <label class="notify-label" for="notify-email">
+                    Get notified about new posts and projects.
+                </label>
+                <form class="notify-form" method="post" action="/">
+                    <input
+                        id="notify-email"
+                        name="email"
+                        type="email"
+                        class="notify-input"
+                        placeholder="you@example.com"
+                        autocomplete="email"
+                        required
+                    />
+                    <button type="submit" class="notify-btn">Notify Me</button>
+                </form>
+            </div>
+        </div>
+        <div class="footer-meta">© 2026 Akash Chaudhari. All rights reserved.</div>
+    </footer>
 
     <div id="policy-overlay" class="policy-modal" aria-hidden="true">
         <button id="close-modal" class="close-btn" aria-label="Close modal">&times;</button>

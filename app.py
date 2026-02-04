@@ -1,17 +1,22 @@
 import os
-
-from flask import Flask, render_template, send_from_directory
+from flask import Flask, render_template, send_from_directory, request, redirect, url_for
+from database.schema import add_notification_email
 
 app = Flask(__name__)
 
 # --- Routes ---
 
-@app.route('/')
+@app.route('/', methods=['GET', 'POST'])
 def home():
     """
     Renders the main single-page portfolio.
     You can pass dynamic data here later (e.g., fetching real stats).
     """
+    if request.method == 'POST':
+        email = request.form.get('email', '').strip()
+        if email:
+            add_notification_email(email)
+        return redirect(url_for('home'))
     return render_template('index.html')
 
 # --- SEO: sitemap + robots ---
