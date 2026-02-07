@@ -1,8 +1,9 @@
 window.addEventListener('load', () => {
+    // Remove scroll lock after loader finishes
     setTimeout(() => { document.body.style.overflow = 'auto'; }, 2500);
 });
 
-// --- CURSOR ANIMATION --- //
+// --- 1. CURSOR ANIMATION --- //
 const startX = 358;
 const startY = 868;
 let mouseX = startX;
@@ -43,7 +44,8 @@ function animate() {
 
 animate();
 
-// --- DYNAMIC LEGAL CONTENT (JSON DATA) --- //
+
+// --- 2. DYNAMIC LEGAL CONTENT (JSON DATA) --- //
 const LEGAL_CONTENT = [
     {
         id: "terms",
@@ -129,8 +131,6 @@ const LEGAL_CONTENT = [
     }
 ];
 
-// --- RENDER & LOGIC --- //
-
 function renderLegalContent() {
     const navList = document.getElementById('dynamic-nav-list');
     const contentArea = document.getElementById('dynamic-content-area');
@@ -189,7 +189,6 @@ function renderLegalContent() {
     });
 }
 
-// --- SCROLL SPY LOGIC --- //
 function initScrollSpy() {
     const contentArea = document.querySelector('.modal-content');
     const sections = document.querySelectorAll('.policy-group');
@@ -220,29 +219,176 @@ function initScrollSpy() {
     sections.forEach(section => observer.observe(section));
 }
 
-// --- INITIALIZATION --- //
-const modal = document.getElementById('policy-overlay');
-const openBtn = document.getElementById('terms-trigger');
-const closeBtn = document.getElementById('close-modal');
+// --- 3. LEGAL MODAL INITIALIZATION --- //
+const policyModal = document.getElementById('policy-overlay');
+const policyOpenBtn = document.getElementById('terms-trigger');
+const policyCloseBtn = document.getElementById('close-modal');
 
 // Init Content
 renderLegalContent();
 initScrollSpy();
 
-openBtn.addEventListener('click', (e) => {
-    e.preventDefault();
-    modal.classList.add('active');
-    document.body.style.overflow = 'hidden'; 
-    const tabs = document.querySelector('.modal-tabs');
-    if (tabs) tabs.scrollLeft = 0;
-});
+if(policyOpenBtn && policyModal) {
+    policyOpenBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        policyModal.classList.add('active');
+        document.body.style.overflow = 'hidden'; 
+        const tabs = document.querySelector('.modal-tabs');
+        if (tabs) tabs.scrollLeft = 0;
+    });
 
-closeBtn.addEventListener('click', () => {
-    modal.classList.remove('active');
-    document.body.style.overflow = 'auto'; 
-});
+    policyCloseBtn.addEventListener('click', () => {
+        policyModal.classList.remove('active');
+        document.body.style.overflow = 'auto'; 
+    });
+}
 
-// --- NOTIFY FORM (AJAX) --- //
+
+// --- 4. DYNAMIC PAYMENT SYSTEM (RAZORPAY) --- //
+const paymentModal = document.getElementById('payment-overlay');
+const coffeeBtn = document.getElementById('coffee-trigger-btn'); // Matches ID in HTML
+const closePaymentBtn = document.getElementById('close-payment');
+const proceedBtn = document.getElementById('proceed-payment-btn');
+const amountInput = document.getElementById('custom-amount');
+
+// Check if elements exist before attaching listeners
+if (coffeeBtn && paymentModal && proceedBtn && amountInput) {
+
+    // A. Open Payment Modal
+    coffeeBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        paymentModal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+        
+        // Auto-focus input for better UX
+        setTimeout(() => {
+            amountInput.focus();
+            amountInput.select();
+        }, 100);
+    });
+
+    // B. Close Payment Modal
+    const closePayment = () => {
+        paymentModal.classList.remove('active');
+        document.body.style.overflow = 'auto';
+    };
+
+    if (closePaymentBtn) {
+        closePaymentBtn.addEventListener('click', closePayment);
+    }
+    
+    // Close on click outside the box
+    paymentModal.addEventListener('click', (e) => {
+        if (e.target === paymentModal) closePayment();
+    });
+
+    // C. Process Payment
+    proceedBtn.addEventListener('click', async () => {
+        const keyId = coffeeBtn.dataset.razorpayKey || '';
+        
+        if (!keyId || typeof Razorpay === 'undefined') {
+            alert("Payment system initializing. Please try again in a moment.");
+            return;
+        }
+
+        const amountVal = parseFloat(amountInput.value);
+        if (!amountVal || amountVal < 1) {
+            alert("Please enter a valid amount (minimum ₹1).");
+            return;
+        }
+
+        // Disable button to prevent double clicks
+        const originalText = proceedBtn.textContent;
+        proceedBtn.disabled = true;
+        proceedBtn.textContent = 'Processing...';
+
+        try {
+            // 1. Create Order on Server
+            const orderResponse = await fetch('/api/razorpay/order', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    amount: amountVal,
+                    source: 'portfolio-coffee' 
+                })
+            });
+
+            let orderData = {};
+            try {
+                orderData = await orderResponse.json();
+            } catch (err) {
+                throw new Error("Invalid response from server.");
+            }
+
+            if (!orderResponse.ok || !orderData.ok || !orderData.orderId) {
+                throw new Error(orderData.message || 'Could not start payment.');
+            }
+
+            // 2. Open Razorpay Checkout
+            const options = {
+                key: orderData.keyId,
+                amount: orderData.amount,
+                currency: orderData.currency,
+                name: orderData.name,
+                description: orderData.description,
+                order_id: orderData.orderId,
+                handler: async function (response) {
+                    try {
+                        // 3. Verify Payment on Server
+                        const verifyResponse = await fetch('/api/razorpay/verify', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(response)
+                        });
+
+                        const verifyData = await verifyResponse.json();
+
+                        if (!verifyResponse.ok || !verifyData.ok) {
+                            throw new Error(verifyData.message || 'Verification failed.');
+                        }
+                        
+                        closePayment();
+                        alert('Thank you for your support! Payment Successful.');
+                        
+                    } catch (err) {
+                        alert(`Payment Verification Error: ${err.message}`);
+                    }
+                },
+                prefill: {
+                    name: "",   // Let user fill this in Razorpay modal
+                    email: ""
+                },
+                theme: { 
+                    color: '#1b7a6b' 
+                },
+                modal: {
+                    ondismiss: function() {
+                        proceedBtn.disabled = false;
+                        proceedBtn.textContent = originalText;
+                    }
+                }
+            };
+
+            const razorpayInstance = new Razorpay(options);
+            
+            razorpayInstance.on('payment.failed', function (response) {
+                alert(`Payment failed: ${response.error.description}`);
+                proceedBtn.disabled = false;
+                proceedBtn.textContent = originalText;
+            });
+            
+            razorpayInstance.open();
+
+        } catch (err) {
+            alert(err.message);
+            proceedBtn.disabled = false;
+            proceedBtn.textContent = originalText;
+        }
+    });
+}
+
+
+// --- 5. NOTIFY FORM (AJAX) --- //
 const notifyForm = document.querySelector('.notify-form');
 if (notifyForm) {
     const notifyInput = notifyForm.querySelector('input[name="email"]');
@@ -305,90 +451,6 @@ if (notifyForm) {
         } finally {
             notifyButton.disabled = false;
             notifyButton.textContent = defaultBtnText;
-        }
-    });
-}
-
-// --- RAZORPAY APPOINTMENT PAYMENT --- //
-const appointmentBtn = document.getElementById('appointment-btn');
-if (appointmentBtn) {
-    appointmentBtn.addEventListener('click', async (event) => {
-        const keyId = appointmentBtn.dataset.razorpayKey || '';
-        if (!keyId || typeof Razorpay === 'undefined') {
-            return;
-        }
-
-        event.preventDefault();
-        appointmentBtn.setAttribute('aria-busy', 'true');
-
-        try {
-            const orderResponse = await fetch('/api/razorpay/order', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ source: 'appointment-button' })
-            });
-
-            let orderData = {};
-            try {
-                orderData = await orderResponse.json();
-            } catch (err) {
-                orderData = {};
-            }
-
-            if (!orderResponse.ok || !orderData.ok || !orderData.orderId) {
-                const message = orderData.message || 'Could not start the payment. Try again.';
-                throw new Error(message);
-            }
-
-            const options = {
-                key: orderData.keyId,
-                amount: orderData.amount,
-                currency: orderData.currency,
-                name: orderData.name || 'Akash Chaudhari',
-                description: orderData.description || 'Book an appointment',
-                order_id: orderData.orderId,
-                handler: async function (response) {
-                    try {
-                        const verifyResponse = await fetch('/api/razorpay/verify', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(response)
-                        });
-
-                        let verifyData = {};
-                        try {
-                            verifyData = await verifyResponse.json();
-                        } catch (err) {
-                            verifyData = {};
-                        }
-
-                        if (!verifyResponse.ok || !verifyData.ok) {
-                            const message = verifyData.message || 'Payment verification failed.';
-                            throw new Error(message);
-                        }
-
-                        alert('Payment successful. We will contact you shortly.');
-                    } catch (err) {
-                        const paymentId = response.razorpay_payment_id || 'unknown';
-                        alert(`${err.message} Payment ID: ${paymentId}`);
-                    }
-                },
-                theme: { color: '#1b7a6b' }
-            };
-
-            const razorpay = new Razorpay(options);
-            razorpay.on('payment.failed', function () {
-                alert('Payment failed or was cancelled. Please try again.');
-            });
-            razorpay.open();
-        } catch (err) {
-            alert(err.message || 'Could not start the payment.');
-            const fallbackUrl = appointmentBtn.getAttribute('href');
-            if (fallbackUrl) {
-                window.open(fallbackUrl, '_blank', 'noopener');
-            }
-        } finally {
-            appointmentBtn.removeAttribute('aria-busy');
         }
     });
 }

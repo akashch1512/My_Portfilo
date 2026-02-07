@@ -119,7 +119,7 @@ a:focus-visible {
     }
 }
 
-/* Header */
+/* --- UPDATED HEADER (Background Added) --- */
 header {
     position: fixed;
     top: 0;
@@ -133,6 +133,12 @@ header {
     opacity: 0;
     animation: revealContent 0.8s ease forwards;
     animation-delay: 2s;
+    
+    /* FIX: Glassmorphism background prevents text overlap while scrolling */
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(20, 20, 20, 0.03);
 }
 
 .logo {
@@ -447,7 +453,6 @@ nav a:focus-visible::after {
     font-size: var(--fs-xxs);
     color: rgba(254, 254, 254, 0.6);
     letter-spacing: 0.6px;
-    /* text-transform: uppercase; */
 }
 
 .footer-links {
@@ -636,10 +641,7 @@ nav a:focus-visible::after {
     pointer-events: none;
 }
 
-
-/* --- NEW OVERLAY POLICY SYSTEM --- */
-
-/* Floating Trigger Button (Header Style) */
+/* --- OVERLAY POLICY SYSTEM --- */
 .floating-policy-btn {
     position: fixed;
     right: 48px;
@@ -676,7 +678,6 @@ nav a:focus-visible::after {
     width: 100%;
 }
 
-/* Modal Overlay */
 .policy-modal {
     position: fixed;
     inset: 0;
@@ -704,7 +705,6 @@ nav a:focus-visible::after {
     position: relative;
 }
 
-/* Sidebar Navigator */
 .modal-nav {
     width: 280px;
     padding: 60px 40px;
@@ -772,7 +772,6 @@ nav a:focus-visible::after {
     color: var(--accent);
 }
 
-/* Close Button - Top Right (Desktop) */
 .close-btn {
     position: absolute;
     top: 40px;
@@ -789,7 +788,6 @@ nav a:focus-visible::after {
     cursor: pointer;
 }
 
-/* Modal Content */
 .modal-content {
     flex: 1;
     height: 100%;
@@ -871,7 +869,7 @@ nav a:focus-visible::after {
     margin-right: 8px;
 }
 
-/* Responsive */
+/* --- RESPONSIVE FIXES --- */
 @media (max-width: 900px) {
     header {
         padding: 24px 24px;
@@ -917,7 +915,6 @@ nav a:focus-visible::after {
         background: var(--bg-soft);
     }
     
-    /* Mobile Header Layout */
     .modal-topbar {
         position: sticky;
         top: 0;
@@ -962,31 +959,27 @@ nav a:focus-visible::after {
         margin-left: 8px;
     }
 
-    /* Remove padding left indent on mobile for active links */
     .nav-link:hover, .nav-link.active {
         padding-left: 0;
     }
     .nav-link.active::before {
         content: none;
     }
-    /* Add underline for active link on mobile instead */
     .nav-link.active {
         border-bottom: 2px solid var(--accent);
     }
     
-    /* Adjust Content for Mobile */
     .modal-content {
-        padding: 30px 24px 100px; /* Extra bottom padding for safe scroll */
+        padding: 30px 24px 100px;
         padding-top: 20px;
     }
 
-    /* Move Close Button into the sticky header flow for mobile */
     .close-btn {
         position: fixed;
-        top: 26px; /* Align with nav */
+        top: 26px;
         right: 24px;
         z-index: 10002;
-        background: var(--bg-soft); /* Ensure it's readable */
+        background: var(--bg-soft);
         padding: 6px;
     }
 }
@@ -995,11 +988,21 @@ nav a:focus-visible::after {
     header {
         flex-direction: column;
         gap: 14px;
+        padding: 15px 24px; 
     }
 
     nav {
         flex-wrap: wrap;
         justify-content: center;
+    }
+
+    /* FIX: Add top padding so visual center is lower and doesn't overlap header */
+    .content {
+        justify-content: center; /* Keep vertically centered */
+        padding-top: 140px; /* Push the top of the content down significantly */
+        height: auto;
+        min-height: 100vh;
+        padding-bottom: 60px;
     }
 
     .cta-group {
@@ -1064,4 +1067,69 @@ nav a:focus-visible::after {
     .scroll-icon::after {
         animation: none !important;
     }
+}
+
+/* Payment Box Styles */
+.payment-box {
+    background: var(--bg-soft);
+    padding: 40px;
+    width: min(400px, 90%);
+    border-radius: 12px;
+    box-shadow: 0 20px 40px -10px rgba(0,0,0,0.3);
+    position: relative;
+    text-align: center;
+    border: 1px solid rgba(20,20,20,0.05);
+}
+
+.payment-box h3 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-size: var(--fs-h2);
+    color: var(--text);
+}
+
+.payment-box p {
+    color: var(--muted);
+    font-size: var(--fs-sm);
+    margin-bottom: 24px;
+}
+
+.input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    border-bottom: 2px solid var(--muted);
+    transition: border-color 0.3s ease;
+}
+
+.input-wrapper:focus-within {
+    border-color: var(--accent);
+}
+
+.currency-symbol {
+    font-size: 1.5rem;
+    color: var(--text);
+    padding-left: 10px;
+    font-weight: 600;
+}
+
+#custom-amount {
+    width: 100%;
+    border: none;
+    background: transparent;
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text);
+    padding: 10px;
+    outline: none;
+    font-family: var(--font-primary);
+}
+
+#custom-amount::-webkit-outer-spin-button,
+#custom-amount::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+#custom-amount {
+  -moz-appearance: textfield;
 }
