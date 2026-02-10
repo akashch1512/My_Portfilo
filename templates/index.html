@@ -25,14 +25,15 @@
     <meta property="twitter:title" content="Akash Chaudhari | Data & AI Engineer">
     <meta property="twitter:description" content="Building intelligent systems with Data and Python.">
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font preload: Critical custom font file for faster text rendering -->
+    <link rel="preload" href="/static/fonts/inter-variable.woff2" as="font" type="font/woff2" crossorigin>
+    
     <link rel="stylesheet" href="/static/styles.css">
 </head>
 
 <body>
-    <div id="loader-wrapper" aria-hidden="true">
+    <!-- Loader overlay - appears over content but doesn't block DOM insertion -->
+    <div id="loader-wrapper" aria-hidden="false">
         <div class="loader-text">Initializing System</div>
     </div>
 
@@ -112,7 +113,9 @@
         <div class="cta-group">
             <a href="mailto:contact@akashchaudhari.in" class="btn hire-btn">Hire Me</a>
             <button class="btn coffee-btn appointment-btn" id="coffee-trigger-btn"
-                data-razorpay-key="{{ razorpay_key_id or '' }}">
+                data-razorpay-key="{{ razorpay_key_id or '' }}"
+                aria-label="Support me by buying a coffee"
+                title="Support my work with a contribution">
                 <span>Buy me a Coffee</span>
                 <svg fill="#000000" viewBox="0 0 22 22" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                     <path
@@ -185,7 +188,6 @@
     </div>
 
 </body>
-<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script src="/static/cursor.js"></script>
 
 </html>

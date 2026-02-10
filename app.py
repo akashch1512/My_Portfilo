@@ -11,6 +11,31 @@ load_dotenv()
 # Configuration
 APPOINTMENT_CURRENCY = "INR"
 
+# === CACHE CONTROL HEADERS FOR STATIC ASSETS === 
+# This ensures optimal caching behavior for CDNs and browsers
+@app.after_request
+def set_cache_headers(response):
+    """
+    Set appropriate Cache-Control headers based on file type:
+    - HTML: short-lived cache with no-cache (check on each visit)
+    - CSS/JS/Fonts/Images: long-lived cache with immutable for fingerprinted assets
+    - JSON API: no-cache to ensure fresh data
+    """
+    if response.content_type and 'text/html' in response.content_type:
+        # HTML: Cache for 1 hour but always revalidate (no-cache)
+        response.headers['Cache-Control'] = 'public, max-age=3600, must-revalidate'
+    elif request.path.startswith('/static/'):
+        # Static assets: Long-term caching (1 year)
+        # In production, use fingerprinted filenames (hash in filename) for immutable caching
+        response.headers['Cache-Control'] = 'public, max-age=31536000, immutable'
+    elif request.path.startswith('/api/'):
+        # API endpoints: No cache, always fresh
+        response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+        response.headers['Pragma'] = 'no-cache'
+        response.headers['Expires'] = '0'
+    
+    return response
+
 def get_razorpay_client():
     key_id = os.getenv("RAZORPAY_KEY_ID")
     key_secret = os.getenv("RAZORPAY_KEY_SECRET")
@@ -47,10 +72,8 @@ def home():
             return jsonify({"ok": True, "message": "Thanks! You are on the list."})
         return redirect(url_for('home'))
     
-    # Render template with cache control for production
-    response = make_response(render_template('index.html', razorpay_key_id=os.getenv("RAZORPAY_KEY_ID", "")))
-    response.headers['Cache-Control'] = 'public, max-age=3600'
-    return response
+    # Render template - cache control is handled by after_request decorator
+    return render_template('index.html', razorpay_key_id=os.getenv("RAZORPAY_KEY_ID", ""))
 
 @app.route('/api/razorpay/order', methods=['POST'])
 def create_razorpay_order():

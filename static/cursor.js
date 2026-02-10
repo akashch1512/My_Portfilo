@@ -1,9 +1,26 @@
-window.addEventListener('load', () => {
-    // Remove scroll lock after loader finishes
-    setTimeout(() => { document.body.style.overflow = 'auto'; }, 2500);
+// --- 0. LOADER & EARLY UNLOCK --- //
+const loaderWrapper = document.getElementById('loader-wrapper');
+
+// Unlock scroll immediately on first paint (DOMContentLoaded) to prevent blocking
+document.addEventListener('DOMContentLoaded', () => {
+    // Remove scroll lock class if set
+    document.body.classList.remove('no-scroll');
 });
 
-// --- 1. CURSOR ANIMATION --- //
+// Handle loader removal via CSS animation - called when slideUp animation finishes
+if (loaderWrapper) {
+    loaderWrapper.addEventListener('animationend', () => {
+        loaderWrapper.setAttribute('aria-hidden', 'true');
+        loaderWrapper.style.display = 'none';
+    }, { once: true });
+}
+
+// Fallback: ensure scroll is unlocked after a reasonable time
+setTimeout(() => {
+    document.body.classList.remove('no-scroll');
+}, 3000);
+
+// --- 1. CURSOR ANIMATION (WITH TOUCH THROTTLING & DOC HIDDEN PAUSE) --- //
 const startX = 358;
 const startY = 868;
 let mouseX = startX;
@@ -15,6 +32,13 @@ let line2Y = startY;
 
 const lineOneEl = document.getElementById('line-one');
 const lineTwoEl = document.getElementById('line-two');
+
+// Detect if device uses touch/coarse pointer
+const isTouchDevice = () => window.matchMedia('(pointer: coarse)').matches || 'ontouchstart' in window;
+let isThrottlingCursorAnim = isTouchDevice();
+let lastAnimFrameTime = 0;
+const TOUCH_THROTTLE_FPS = 15; // Throttle to ~15 FPS on touch devices
+const TOUCH_FRAME_INTERVAL = 1000 / TOUCH_THROTTLE_FPS;
 
 document.addEventListener('mousemove', (e) => {
     mouseX = e.clientX;
@@ -29,12 +53,28 @@ document.addEventListener('touchmove', (e) => {
 }, { passive: true });
 
 function animate() {
+    // Pause animation if document is hidden (tab not active)
+    if (document.hidden) {
+        requestAnimationFrame(animate);
+        return;
+    }
+
+    // Throttle on touch devices to reduce CPU usage
+    if (isThrottlingCursorAnim) {
+        const now = performance.now();
+        if (now - lastAnimFrameTime < TOUCH_FRAME_INTERVAL) {
+            requestAnimationFrame(animate);
+            return;
+        }
+        lastAnimFrameTime = now;
+    }
+
     line1X += (mouseX - line1X) * 0.05;
     line1Y += (mouseY - line1Y) * 0.05;
     line2X += (mouseX - line2X) * 0.2;
     line2Y += (mouseY - line2Y) * 0.2;
 
-    if(lineOneEl && lineTwoEl) {
+    if (lineOneEl && lineTwoEl) {
         lineOneEl.style.transform = `translate(${line1X}px, ${line1Y}px) translate(-50%, -50%) rotate(45deg)`;
         lineTwoEl.style.transform = `translate(${line2X}px, ${line2Y}px) translate(-50%, -50%) rotate(-45deg)`;
     }
@@ -43,6 +83,30 @@ function animate() {
 }
 
 animate();
+
+// --- RAZORPAY SCRIPT DEFERRED LOADING --- //
+// Load Razorpay script after first paint via requestIdleCallback (or after FCP)
+const loadRazorpayScript = () => {
+    if (window.Razorpay) return; // Already loaded
+    const script = document.createElement('script');
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    script.async = true;
+    document.head.appendChild(script);
+};
+
+// Use requestIdleCallback if available, otherwise load after short delay
+if ('requestIdleCallback' in window) {
+    requestIdleCallback(() => loadRazorpayScript(), { timeout: 2000 });
+} else {
+    // Fallback: load after first paint
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(loadRazorpayScript, 100);
+        });
+    } else {
+        setTimeout(loadRazorpayScript, 100);
+    }
+}
 
 
 // --- 2. DYNAMIC LEGAL CONTENT (JSON DATA) --- //
@@ -219,7 +283,48 @@ function initScrollSpy() {
     sections.forEach(section => observer.observe(section));
 }
 
-// --- 3. LEGAL MODAL INITIALIZATION --- //
+// --- 3. ACCESSIBILITY & MODAL FOCUS MANAGEMENT --- //
+// Helper function to focus first focusable element in a container
+const focusFirstElement = (container) => {
+    const focusables = container.querySelectorAll(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    );
+    if (focusables.length > 0) {
+        focusables[0].focus();
+    }
+};
+
+// Helper function to trap focus within a modal (optional - enhanced UX)
+const createFocusTrap = (modal) => {
+    const focusables = modal.querySelectorAll(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    );
+    const firstFocusable = focusables[0];
+    const lastFocusable = focusables[focusables.length - 1];
+
+    modal.addEventListener('keydown', (e) => {
+        if (e.key === 'Tab') {
+            if (e.shiftKey) {
+                if (document.activeElement === firstFocusable) {
+                    e.preventDefault();
+                    lastFocusable.focus();
+                }
+            } else {
+                if (document.activeElement === lastFocusable) {
+                    e.preventDefault();
+                    firstFocusable.focus();
+                }
+            }
+        }
+        // Close modal on Escape key
+        if (e.key === 'Escape') {
+            modal.classList.remove('active');
+            document.body.classList.remove('no-scroll');
+        }
+    });
+};
+
+// --- 4. LEGAL MODAL INITIALIZATION --- //
 const policyModal = document.getElementById('policy-overlay');
 const policyOpenBtn = document.getElementById('terms-trigger');
 const policyCloseBtn = document.getElementById('close-modal');
@@ -232,14 +337,25 @@ if(policyOpenBtn && policyModal) {
     policyOpenBtn.addEventListener('click', (e) => {
         e.preventDefault();
         policyModal.classList.add('active');
-        document.body.style.overflow = 'hidden'; 
+        document.body.classList.add('no-scroll');
         const tabs = document.querySelector('.modal-tabs');
         if (tabs) tabs.scrollLeft = 0;
+        
+        // Focus management: Set focus to close button for accessibility
+        const closeBtn = policyModal.querySelector('.close-btn');
+        if (closeBtn) {
+            setTimeout(() => closeBtn.focus(), 100);
+        }
+        
+        // Set up focus trap for keyboard navigation and Escape key handling
+        createFocusTrap(policyModal);
     });
 
     policyCloseBtn.addEventListener('click', () => {
         policyModal.classList.remove('active');
-        document.body.style.overflow = 'auto'; 
+        document.body.classList.remove('no-scroll');
+        // Return focus to the trigger button
+        policyOpenBtn.focus();
     });
 }
 
@@ -258,19 +374,24 @@ if (coffeeBtn && paymentModal && proceedBtn && amountInput) {
     coffeeBtn.addEventListener('click', (e) => {
         e.preventDefault();
         paymentModal.classList.add('active');
-        document.body.style.overflow = 'hidden';
+        document.body.classList.add('no-scroll');
         
         // Auto-focus input for better UX
         setTimeout(() => {
             amountInput.focus();
             amountInput.select();
         }, 100);
+        
+        // Set up focus trap for keyboard navigation and Escape key handling
+        createFocusTrap(paymentModal);
     });
 
     // B. Close Payment Modal
     const closePayment = () => {
         paymentModal.classList.remove('active');
-        document.body.style.overflow = 'auto';
+        document.body.classList.remove('no-scroll');
+        // Return focus to trigger button
+        coffeeBtn.focus();
     };
 
     if (closePaymentBtn) {
@@ -439,7 +560,7 @@ if (notifyForm) {
             }
 
             if (!response.ok || (data && data.ok === false)) {
-                const message = (data && data.message) ? data.message : 'Could not save email. Try again.';
+                const message = (data && data.message) ? data.message : 'I think you are already on the list.?';
                 setStatus(message, true);
             } else {
                 const message = (data && data.message) ? data.message : 'Thanks! You are on the list.';
