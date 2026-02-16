@@ -368,6 +368,8 @@ const coffeeBtn = document.getElementById('coffee-trigger-btn'); // Matches ID i
 const closePaymentBtn = document.getElementById('close-payment');
 const proceedBtn = document.getElementById('proceed-payment-btn');
 const amountInput = document.getElementById('custom-amount');
+const currencySelect = document.getElementById('currency-select');
+const currencySymbolEl = document.querySelector('.currency-symbol');
 
 // Check if elements exist before attaching listeners
 if (coffeeBtn && paymentModal && proceedBtn && amountInput) {
@@ -378,10 +380,19 @@ if (coffeeBtn && paymentModal && proceedBtn && amountInput) {
         paymentModal.classList.add('active');
         document.body.classList.add('no-scroll');
         
-        // Auto-focus input for better UX
+        // Reset to INR (default) when opening
+        if (currencySelect) {
+            currencySelect.value = 'INR';
+            if (currencySymbolEl) {
+                currencySymbolEl.textContent = '₹';
+            }
+            amountInput.placeholder = '100';
+            amountInput.value = '100';
+        }
+        
+        // Auto-focus currency selector for better UX
         setTimeout(() => {
-            amountInput.focus();
-            amountInput.select();
+            if (currencySelect) currencySelect.focus();
         }, 100);
         
         // Set up focus trap for keyboard navigation and Escape key handling
@@ -406,6 +417,25 @@ if (coffeeBtn && paymentModal && proceedBtn && amountInput) {
     });
 
     // C. Process Payment
+    // --- Currency selector: update symbol/min/placeholder when user changes currency ---
+    if (currencySelect && currencySymbolEl) {
+        const updateCurrencyUI = () => {
+            const cur = (currencySelect.value || 'INR');
+            currencySymbolEl.textContent = cur === 'USD' ? '$' : '₹';
+            if (cur === 'USD') {
+                amountInput.step = "0.01";
+                amountInput.min = "0.01";
+                amountInput.placeholder = "1.00";
+            } else {
+                amountInput.step = "0.01";
+                amountInput.min = "1";
+                amountInput.placeholder = "100";
+            }
+        };
+        currencySelect.addEventListener('change', updateCurrencyUI);
+        updateCurrencyUI();
+    }
+
     proceedBtn.addEventListener('click', async () => {
         const keyId = coffeeBtn.dataset.razorpayKey || '';
         
@@ -414,9 +444,14 @@ if (coffeeBtn && paymentModal && proceedBtn && amountInput) {
             return;
         }
 
+        const selectedCurrency = (currencySelect && currencySelect.value) ? currencySelect.value : 'INR';
         const amountVal = parseFloat(amountInput.value);
-        if (!amountVal || amountVal < 1) {
-            alert("Please enter a valid amount (minimum ₹1).");
+        const minAmount = selectedCurrency === 'USD' ? 0.01 : 1;
+        const currencySymbol = selectedCurrency === 'USD' ? '$' : '₹';
+        const currencyName = selectedCurrency === 'USD' ? 'US Dollars' : 'Indian Rupees';
+
+        if (isNaN(amountVal) || amountVal < minAmount) {
+            alert(`Please enter a valid amount (minimum ${currencySymbol}${minAmount}).`);
             return;
         }
 
@@ -430,9 +465,10 @@ if (coffeeBtn && paymentModal && proceedBtn && amountInput) {
             const orderResponse = await fetch('/api/razorpay/order', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
+                body: JSON.stringify({
                     amount: amountVal,
-                    source: 'portfolio-coffee' 
+                    currency: selectedCurrency,
+                    source: 'portfolio-coffee'
                 })
             });
 
@@ -453,7 +489,7 @@ if (coffeeBtn && paymentModal && proceedBtn && amountInput) {
                 amount: orderData.amount,
                 currency: orderData.currency,
                 name: orderData.name,
-                description: orderData.description,
+                description: `${orderData.description} - ${currencySymbol}${amountVal.toFixed(selectedCurrency === 'USD' ? 2 : 0)}`,
                 order_id: orderData.orderId,
                 handler: async function (response) {
                     try {
@@ -471,15 +507,19 @@ if (coffeeBtn && paymentModal && proceedBtn && amountInput) {
                         }
                         
                         closePayment();
-                        alert('Thank you for your support! Payment Successful.');
+                        alert(`Thank you for your support! Payment of ${currencySymbol}${amountVal.toFixed(selectedCurrency === 'USD' ? 2 : 0)} ${currencyName} was successful.`);
                         
                     } catch (err) {
                         alert(`Payment Verification Error: ${err.message}`);
                     }
                 },
                 prefill: {
-                    name: "",   // Let user fill this in Razorpay modal
+                    name: "",
                     email: ""
+                },
+                notes: {
+                    currency: selectedCurrency,
+                    currency_name: currencyName
                 },
                 theme: { 
                     color: '#1b7a6b' 

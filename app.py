@@ -9,6 +9,7 @@ app = Flask(__name__)
 load_dotenv()
 
 # Configuration
+# Default currency used when client doesn't provide one
 APPOINTMENT_CURRENCY = "INR"
 
 # === CACHE CONTROL HEADERS FOR STATIC ASSETS === 
@@ -82,26 +83,34 @@ def create_razorpay_order():
         return jsonify({"ok": False, "message": error}), 500
 
     data = request.get_json(silent=True) or {}
-    
-    # 1. Get user amount (Default to 100 INR if missing/invalid)
+
+    # Allow client to request currency (default falls back to server config)
+    currency = (data.get('currency') or APPOINTMENT_CURRENCY).upper()
+    if currency not in ("INR", "USD"):
+        return jsonify({"ok": False, "message": "Unsupported currency. Use INR or USD."}), 400
+
+    # 1. Get user amount (default to 100 of the chosen currency)
     try:
         user_amount = float(data.get('amount', 100))
-        if user_amount < 1: 
-            return jsonify({"ok": False, "message": "Minimum amount is ₹1"}), 400
+        min_amount = 0.01 if currency == "USD" else 1
+        if user_amount < min_amount:
+            symbol = "$" if currency == "USD" else "₹"
+            return jsonify({"ok": False, "message": f"Minimum amount is {symbol}{min_amount}"}), 400
     except (ValueError, TypeError):
         return jsonify({"ok": False, "message": "Invalid amount format"}), 400
 
-    # 2. Convert to Paise (Razorpay expects smallest currency unit)
-    amount_paise = int(user_amount * 100)
+    # 2. Convert to smallest currency unit (paise/cents)
+    amount_smallest = int(round(user_amount * 100))
 
-    receipt_id = f"coffee_{int(time.time())}"
+    receipt_id = f"coffee_{currency.lower()}_{int(time.time())}"
     payload = {
-        "amount": amount_paise,
-        "currency": APPOINTMENT_CURRENCY,
+        "amount": amount_smallest,
+        "currency": currency,
         "receipt": receipt_id,
         "payment_capture": 1,
         "notes": {
-            "type": "coffee_donation"
+            "type": "coffee_donation",
+            "currency": currency
         }
     }
 

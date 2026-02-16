@@ -1156,6 +1156,46 @@ nav a:focus-visible::after {
     font-family: var(--font-primary);
 }
 
+/* Currency Row Styling */
+.currency-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 16px;
+    padding: 12px;
+    background: rgba(27, 122, 107, 0.05);
+    border-radius: 8px;
+    flex-wrap: wrap;
+}
+
+#currency-select {
+    padding: 8px 12px;
+    border: 1px solid var(--muted);
+    border-radius: 6px;
+    background: var(--bg-soft);
+    color: var(--text);
+    font-size: var(--fs-sm);
+    font-family: var(--font-primary);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-width: 120px;
+}
+
+#currency-select:hover {
+    border-color: var(--accent);
+}
+
+#currency-select:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(27, 122, 107, 0.1);
+}
+
+.currency-row > div {
+    flex: 1;
+    min-width: 150px;
+}
+
 #custom-amount::-webkit-outer-spin-button,
 #custom-amount::-webkit-inner-spin-button {
   -webkit-appearance: none;
